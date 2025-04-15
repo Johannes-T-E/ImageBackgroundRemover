@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Image Background Remover</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="image-box">
+            <div class="box-header">
+                <h3>Original Image</h3>
+            </div>
+            <div class="image-preview-container">
+                <img id="original-image" class="image-preview">
+            </div>
+            <div class="button-group">
+                <button id="load-image">Load Image</button>
+                <button id="paste-image">Paste Image</button>
+            </div>
+        </div>
+
+        <div class="image-box">
+            <div class="box-header">
+                <h3>Processed Image</h3>
+                <button id="settings-button" class="icon-button" title="Display Settings">⚙️</button>
+            </div>
+            <div class="image-preview-container" id="processed-preview-container">
+                <img id="processed-image" class="image-preview">
+            </div>
+            <div class="button-group">
+                <button id="save-image">Save Image</button>
+                <button id="copy-image">Copy Image</button>
+            </div>
+        </div>
+
+        <div class="settings-panel">
+            <div class="settings-section">
+                <h3>Color Selection</h3>
+                <p class="capture-hint">Press 'W' key to capture color</p>
+                <div id="color-list" class="color-list"></div>
+                <button id="clear-colors">Clear Colors</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div id="settings-overlay" class="settings-overlay">
+        <div class="settings-modal">
+            <div class="modal-header">
+                <h3>Display Settings</h3>
+                <button class="icon-button close-button">✕</button>
+            </div>
+            <div class="modal-content">
+                <div class="setting-group">
+                    <label for="bg-type">Background Type</label>
+                    <select id="bg-type">
+                        <option value="checkerboard">Checkerboard</option>
+                        <option value="solid">Solid Color</option>
+                    </select>
+                </div>
+                <div class="setting-group" id="color-picker-group">
+                    <label for="bg-color">Background Color</label>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="bg-color">
+                        <span class="color-value"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html> 
