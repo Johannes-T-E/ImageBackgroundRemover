@@ -1,6 +1,6 @@
 # Image Background Remover
 
-A modern Electron application for removing backgrounds from images using color-based selection.
+Hobby Project - Electron application for removing backgrounds from images using color-based selection.
 
 ![Application Screenshot](assets/UI_Screenshot.png)
 
