@@ -2,6 +2,8 @@
 
 A modern Electron application for removing backgrounds from images using color-based selection.
 
+![Application Screenshot](assets/UI_Screenshot.png)
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
