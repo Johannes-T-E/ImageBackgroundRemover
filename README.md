@@ -2,7 +2,7 @@
 
 Hobby Project - Electron application for removing backgrounds from images using color-based selection.
 
-![Application Screenshot](assets/screenshot.png)
+![Application Screenshot](assets/UI_Screenshot.png)
 
 ## Features
 
