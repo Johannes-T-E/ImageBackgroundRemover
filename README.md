@@ -6,8 +6,8 @@ Hobby Project - Electron application for removing backgrounds from images using 
 
 ## Features
 
-- Color picker tool (Press 'W' key)
-- Adjustable color tolerance
+- Instant color sampling (Press 'W' to capture color under cursor)
+- Adjustable color tolerance for each selected color
 - Support for PNG, JPG, and JPEG images
 - Copy/Paste support
 - Customizable background display (checkerboard or solid color)
@@ -70,10 +70,12 @@ npm start
    - Drag and drop an image file
 
 2. Remove background colors:
-   - Press `W` key to activate color picker
-   - Click on colors in the image you want to remove
-   - Adjust tolerance slider for each color
+   - Move your cursor over a color you want to remove
+   - Press `W` to capture the color under your cursor
+   - Each captured color will appear in the color list
+   - Adjust the tolerance slider for each color to fine-tune the selection
    - Colors will be removed in real-time
+   - Repeat for all colors you want to remove
 
 3. Save or copy the result:
    - Click "Save" button to save as PNG
@@ -81,7 +83,7 @@ npm start
 
 ### Keyboard Shortcuts
 
-- `W` - Activate color picker
+- `W` - Capture color under cursor
 - `Ctrl/Cmd + C` - Copy processed image
 - `Ctrl/Cmd + V` - Paste image from clipboard
 - `Ctrl/Cmd + S` - Save processed image
