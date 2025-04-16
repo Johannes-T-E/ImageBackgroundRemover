@@ -21,6 +21,22 @@ class ImageProcessor:
         self.edge_detection: bool = False
         self.edge_sensitivity: int = 50
 
+    def get_temp_dir(self) -> str:
+        # Get the directory where the script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Get the root directory (two levels up from backend)
+        root_dir = os.path.dirname(os.path.dirname(script_dir))
+        
+        # Create temp directory in the root
+        temp_dir = os.path.join(root_dir, 'temp')
+        
+        # Create the temp directory if it doesn't exist
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+        
+        return temp_dir
+
     def process_message(self, message):
         try:
             data = json.loads(message)
@@ -141,10 +157,10 @@ class ImageProcessor:
         if self.processed_image:
             try:
                 # Ensure temp directory exists
-                os.makedirs('temp', exist_ok=True)
+                temp_dir = self.get_temp_dir()
                 
                 # Save to temporary file with normalized absolute path
-                temp_path = os.path.abspath(os.path.join('temp', 'processed_image.png'))
+                temp_path = os.path.abspath(os.path.join(temp_dir, 'processed_image.png'))
                 temp_path = temp_path.replace('\\', '/')
                 
                 # Save with alpha channel

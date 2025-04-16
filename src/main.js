@@ -5,14 +5,22 @@ const fs = require('fs');
 let pythonProcess = null;
 let mainWindow = null;
 
+// Get the application root directory
+function getAppRoot() {
+    const isDev = !app.isPackaged;
+    return isDev ? path.join(__dirname, '..') : process.resourcesPath;
+}
+
 // Get the correct temp directory path
 function getTempPath() {
-    const isDev = process.argv.includes('--debug');
-    if (isDev) {
-        return path.join(__dirname, '../temp');
-    } else {
-        return path.join(process.resourcesPath, 'app.asar.unpacked/temp');
-    }
+    const appRoot = getAppRoot();
+    return path.join(appRoot, 'temp');
+}
+
+// Get the correct backend directory path
+function getBackendPath() {
+    const appRoot = getAppRoot();
+    return path.join(appRoot, 'src', 'backend');
 }
 
 // Ensure temp directory exists
@@ -74,7 +82,7 @@ function createWindow() {
 // Start Python backend service
 function startPythonService() {
     // Determine if we're in development or production
-    const isDev = process.argv.includes('--debug');
+    const isDev = !app.isPackaged;
     
     // Set up paths based on environment
     let pythonPath;
@@ -82,8 +90,8 @@ function startPythonService() {
     
     if (isDev) {
         // Development environment
-        pythonPath = 'venv/Scripts/python';
-        scriptPath = path.join(__dirname, 'backend');
+        pythonPath = path.join('venv', 'Scripts', 'python');
+        scriptPath = getBackendPath();
         console.log('Development environment detected');
     } else {
         // Production environment
@@ -97,7 +105,7 @@ function startPythonService() {
             console.log('Python is available');
             
             // Install requirements directly using system Python
-            const requirementsPath = path.join(scriptPath, 'requirements.txt');
+            const requirementsPath = path.join(getAppRoot(), 'requirements.txt');
             console.log('Installing requirements from:', requirementsPath);
             
             if (!fs.existsSync(requirementsPath)) {
