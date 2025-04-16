@@ -2,7 +2,7 @@
 
 Hobby Project - Electron application for removing backgrounds from images using color-based selection.
 
-![Application Screenshot](assets/UI_Screenshot.png)
+![Application Screenshot](assets/screenshot.png)
 
 ## Features
 
@@ -88,20 +88,49 @@ npm start
 
 ## Development
 
-To build the application for distribution:
+### Building from Source
+
+1. Install dependencies:
 ```bash
-npm run build
+# Install Node.js dependencies
+npm install
+
+# Set up Python environment and dependencies
+python -m venv venv
+.\venv\Scripts\activate  # On Windows
+source venv/bin/activate  # On macOS/Linux
+pip install -r requirements.txt
 ```
 
-The built application will be available in the `dist` directory.
+2. Build the application:
+```bash
+# Build for your current platform
+npm run build
 
-## Project Structure
+# The built application will be in the dist/win-unpacked directory (Windows)
+# or dist/mac (macOS) or dist/linux-unpacked (Linux)
+```
+
+3. Running the built application:
+- Windows: Run `dist/win-unpacked/imagebackgroundremover.exe`
+- macOS: Run `dist/mac/Image Background Remover.app`
+- Linux: Run `dist/linux-unpacked/imagebackgroundremover`
+
+### Development Mode
+
+For development with hot-reload and DevTools:
+```bash
+npm run dev
+```
+
+### Project Structure
 
 - `src/` - Source code directory
   - `backend/` - Python backend service
   - `ui/` - Electron frontend
 - `temp/` - Temporary files (created automatically)
 - `assets/` - Application assets
+- `dist/` - Built application (created by build process)
 
 ## Contributing
 

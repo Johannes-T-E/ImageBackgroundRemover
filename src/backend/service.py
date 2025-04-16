@@ -17,6 +17,9 @@ class ImageProcessor:
         self.colors: List[Color] = []
         self.current_image = None
         self.processed_image = None
+        self.tolerances: List[int] = []
+        self.edge_detection: bool = False
+        self.edge_sensitivity: int = 50
 
     def process_message(self, message):
         try:
@@ -43,6 +46,11 @@ class ImageProcessor:
                 
             elif command == 'clear-colors':
                 self.clear_colors()
+                
+            elif command == 'update-edge-settings':
+                enabled = data.get('enabled')
+                sensitivity = data.get('sensitivity')
+                self.update_edge_settings(enabled, sensitivity)
                     
             self.send_response({'status': 'success'})
             
@@ -67,6 +75,7 @@ class ImageProcessor:
 
     def clear_colors(self):
         self.colors.clear()
+        self.tolerances.clear()
         if self.current_image:
             self.process_image()
 
@@ -166,6 +175,12 @@ class ImageProcessor:
             })
             print(error_msg)
             sys.stdout.flush()
+
+    def update_edge_settings(self, enabled: bool, sensitivity: int):
+        self.edge_detection = enabled
+        self.edge_sensitivity = sensitivity
+        if self.current_image:
+            self.process_image()
 
 def main():
     processor = ImageProcessor()

@@ -5,6 +5,25 @@ const fs = require('fs');
 let pythonProcess = null;
 let mainWindow = null;
 
+// Get the correct temp directory path
+function getTempPath() {
+    const isDev = process.argv.includes('--debug');
+    if (isDev) {
+        return path.join(__dirname, '../temp');
+    } else {
+        return path.join(process.resourcesPath, 'app.asar.unpacked/temp');
+    }
+}
+
+// Ensure temp directory exists
+function ensureTempDir() {
+    const tempDir = getTempPath();
+    if (!fs.existsSync(tempDir)) {
+        console.log('Creating temp directory:', tempDir);
+        fs.mkdirSync(tempDir, { recursive: true });
+    }
+}
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -54,22 +73,82 @@ function createWindow() {
 
 // Start Python backend service
 function startPythonService() {
+    // Determine if we're in development or production
+    const isDev = process.argv.includes('--debug');
+    
+    // Set up paths based on environment
+    let pythonPath;
+    let scriptPath;
+    
+    if (isDev) {
+        // Development environment
+        pythonPath = 'venv/Scripts/python';
+        scriptPath = path.join(__dirname, 'backend');
+        console.log('Development environment detected');
+    } else {
+        // Production environment
+        console.log('Production environment detected');
+        scriptPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'backend');
+        console.log('Script path:', scriptPath);
+        
+        try {
+            // First check if Python is available
+            require('child_process').execSync('python --version');
+            console.log('Python is available');
+            
+            // Install requirements directly using system Python
+            const requirementsPath = path.join(scriptPath, 'requirements.txt');
+            console.log('Installing requirements from:', requirementsPath);
+            
+            if (!fs.existsSync(requirementsPath)) {
+                console.error('requirements.txt not found at:', requirementsPath);
+                throw new Error('requirements.txt not found');
+            }
+            
+            const installCommand = `python -m pip install -r "${requirementsPath}"`;
+            console.log('Running command:', installCommand);
+            require('child_process').execSync(installCommand);
+            
+            console.log('Dependencies installed successfully');
+            pythonPath = 'python';
+        } catch (error) {
+            console.error('Error setting up Python environment:', error);
+            mainWindow.webContents.send('python-error', {
+                status: 'error',
+                message: 'Failed to set up Python environment: ' + error.message
+            });
+            return;
+        }
+    }
+
+    // Verify all required files exist
+    console.log('Verifying required files...');
+    const servicePath = path.join(scriptPath, 'service.py');
+    if (!fs.existsSync(servicePath)) {
+        console.error('service.py not found at:', servicePath);
+        mainWindow.webContents.send('python-error', {
+            status: 'error',
+            message: 'service.py not found'
+        });
+        return;
+    }
+
     const options = {
         mode: 'json',
-        pythonPath: 'venv/Scripts/python',
+        pythonPath: pythonPath,
         pythonOptions: ['-u'], // unbuffered output
-        scriptPath: path.join(__dirname, 'backend'),
+        scriptPath: scriptPath,
         args: []
     };
+
+    console.log('Starting Python service with options:', options);
 
     pythonProcess = new PythonShell('service.py', options);
     
     pythonProcess.on('message', function (message) {
+        console.log('Python message received:', message);
         try {
             // Handle messages from Python
-            console.log('Python message:', message);
-            
-            // Forward image processing results to renderer
             if (message.type === 'image-processed') {
                 // Normalize path before sending to renderer
                 const normalizedPath = message.path.replace(/\\/g, '/');
@@ -88,8 +167,11 @@ function startPythonService() {
     });
     
     pythonProcess.on('stderr', function (stderr) {
-        // Log debug/error output from Python
-        console.log('Python stderr:', stderr);
+        console.error('Python stderr:', stderr);
+        mainWindow.webContents.send('python-error', {
+            status: 'error',
+            message: stderr
+        });
     });
     
     pythonProcess.on('error', function (err) {
@@ -99,9 +181,20 @@ function startPythonService() {
             message: err.message
         });
     });
+
+    pythonProcess.on('close', function (code) {
+        console.log('Python process closed with code:', code);
+        if (code !== 0) {
+            mainWindow.webContents.send('python-error', {
+                status: 'error',
+                message: `Python process exited with code ${code}`
+            });
+        }
+    });
 }
 
 app.whenReady().then(() => {
+    ensureTempDir();
     createWindow();
     startPythonService();
 
@@ -143,12 +236,9 @@ ipcMain.handle('paste-image', async () => {
             return { status: 'error', message: 'No image in clipboard' };
         }
 
-        // Ensure temp directory exists
-        const tempDir = path.join(__dirname, '../temp');
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
-
+        // Get temp directory path
+        const tempDir = getTempPath();
+        
         // Convert to PNG with alpha channel
         const pngBuffer = image.toPNG();
         
@@ -173,8 +263,9 @@ ipcMain.handle('save-image', async () => {
 
     if (!result.canceled) {
         // Copy processed image to selected location
+        const tempDir = getTempPath();
         fs.copyFileSync(
-            path.join(__dirname, '../temp/processed_image.png'),
+            path.join(tempDir, 'processed_image.png'),
             result.filePath
         );
         return { status: 'success' };
@@ -185,7 +276,8 @@ ipcMain.handle('save-image', async () => {
 ipcMain.handle('copy-image', async () => {
     try {
         // Read the processed image
-        const processedImagePath = path.join(__dirname, '../temp/processed_image.png');
+        const tempDir = getTempPath();
+        const processedImagePath = path.join(tempDir, 'processed_image.png');
         if (!fs.existsSync(processedImagePath)) {
             return { status: 'error', message: 'No processed image available' };
         }
